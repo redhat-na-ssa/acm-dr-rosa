@@ -1,13 +1,13 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.5.7"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 5.38.0"
+      version = ">= 6.51.0"
     }
     rhcs = {
-      source  = "terraform-redhat/rhcs"
       version = ">= 1.7.7"
+      source  = "terraform-redhat/rhcs"
     }
   }
 }
@@ -24,7 +24,7 @@ provider "rhcs" {
 # 1. VPC Module (Submodule from official repo)
 # ------------------------------------------------------------------------------
 module "vpc" {
-  source = "terraform-redhat/rosa-hcp/rhcs//modules/vpc"
+  source  = "terraform-redhat/rosa-hcp/rhcs//modules/vpc"
   version = "1.7.4"
 
   name_prefix              = var.vpc_name
@@ -32,8 +32,49 @@ module "vpc" {
   availability_zones_count = 3
 }
 
+# ==============================================================================
+# 2. CUSTOM SECURITY GROUPS
+# ==============================================================================
+
+# 1. Custom Control Plane Security Group
+# Attached to Control Plane so Managed Klusterlet agents can hit Hub API (6443)
+resource "aws_security_group" "hub_control_plane_sg" {
+  name        = "rosa-hub-control-plane-sg"
+  description = "Custom SG for Hub Control Plane"
+  vpc_id      = module.vpc.vpc_id
+
+  tags = {
+    Name = "rosa-hub-control-plane-sg"
+  }
+}
+
+resource "aws_vpc_security_group_egress_rule" "hub_cp_allow_all_outbound" {
+  security_group_id = aws_security_group.hub_control_plane_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+# 2. Custom Compute Nodes Security Group
+# Attached to Compute Nodes for Submariner & Ingress Router traffic (443)
+resource "aws_security_group" "hub_compute_sg" {
+  name        = "rosa-hub-compute-sg"
+  description = "Custom SG for Hub Compute Nodes"
+  vpc_id      = module.vpc.vpc_id
+
+  tags = {
+    Name = "rosa-hub-compute-sg"
+  }
+}
+
+resource "aws_vpc_security_group_egress_rule" "hub_compute_allow_all_outbound" {
+  security_group_id = aws_security_group.hub_compute_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+
 # ------------------------------------------------------------------------------
-# 2. ROSA HCP Cluster Module
+# 3. ROSA HCP Cluster Module
 # ------------------------------------------------------------------------------
 module "rosa_hcp_cluster" {
   source  = "terraform-redhat/rosa-hcp/rhcs"
@@ -59,6 +100,16 @@ module "rosa_hcp_cluster" {
 
   # Compute Configuration (3 replicas for multi-AZ high availability)
   replicas = 3
+
+  # Custom Control Plane SG
+  aws_additional_control_plane_security_group_ids = [
+    aws_security_group.hub_control_plane_sg.id
+  ]
+
+  # Custom Compute Nodes SG
+  aws_additional_compute_security_group_ids = [
+    aws_security_group.hub_compute_sg.id
+  ]
 
   # Users
   create_admin_user = true

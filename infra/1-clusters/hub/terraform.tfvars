@@ -6,4 +6,4 @@ account_role_prefix  = "rosa-account"
 operator_role_prefix = "rosa-hub-operator"
 
 # Optional: Override OpenShift version if needed
-openshift_version    = "4.22.8"
+openshift_version = "4.22.8"
