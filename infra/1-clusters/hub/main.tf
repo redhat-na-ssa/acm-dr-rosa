@@ -30,6 +30,12 @@ module "vpc" {
   name_prefix              = var.vpc_name
   vpc_cidr                 = var.vpc_cidr
   availability_zones_count = 3
+
+  # REQUIRED - terraform files for VPC peering filter on VPC tags
+  vpc_tags = {
+    Name = "rosa-vpc-${var.aws_region}"
+  }
+
 }
 
 # ==============================================================================
@@ -37,7 +43,6 @@ module "vpc" {
 # ==============================================================================
 
 # 1. Custom Control Plane Security Group
-# Attached to Control Plane so Managed Klusterlet agents can hit Hub API (6443)
 resource "aws_security_group" "hub_control_plane_sg" {
   name        = "rosa-hub-control-plane-sg"
   description = "Custom SG for Hub Control Plane"
@@ -55,7 +60,6 @@ resource "aws_vpc_security_group_egress_rule" "hub_cp_allow_all_outbound" {
 }
 
 # 2. Custom Compute Nodes Security Group
-# Attached to Compute Nodes for Submariner & Ingress Router traffic (443)
 resource "aws_security_group" "hub_compute_sg" {
   name        = "rosa-hub-compute-sg"
   description = "Custom SG for Hub Compute Nodes"

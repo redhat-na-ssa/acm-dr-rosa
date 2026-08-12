@@ -30,6 +30,12 @@ module "vpc" {
   name_prefix              = var.vpc_name
   vpc_cidr                 = var.vpc_cidr
   availability_zones_count = 3
+
+  # REQUIRED - terraform files for VPC peering filter on VPC tags
+  vpc_tags = {
+    Name = "rosa-vpc-${var.aws_region}"
+  }
+
 }
 
 # ==============================================================================
@@ -37,7 +43,6 @@ module "vpc" {
 # ==============================================================================
 
 # 1. Custom Control Plane Security Group
-# Allows Hub to manage API (6443) & Primary Bastion to tunnel API access
 resource "aws_security_group" "secondary_control_plane_sg" {
   name        = "rosa-secondary-control-plane-sg"
   description = "Custom SG for Secondary Control Plane"
@@ -55,7 +60,6 @@ resource "aws_vpc_security_group_egress_rule" "secondary_cp_allow_all_outbound" 
 }
 
 # 2. Custom Compute Nodes Security Group
-# Allows Submariner tunnels, Klusterlet outbound SNAT, and Primary Bastion Web Console access (443)
 resource "aws_security_group" "secondary_compute_sg" {
   name        = "rosa-secondary-compute-sg"
   description = "Custom SG for Secondary Compute Nodes"
