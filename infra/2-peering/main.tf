@@ -24,6 +24,9 @@ resource "aws_vpc_peering_connection_options" "hub_to_primary_requester_opts" {
   vpc_peering_connection_id = aws_vpc_peering_connection.hub_to_primary.id
 
   requester { allow_remote_vpc_dns_resolution = true }
+
+  depends_on = [aws_vpc_peering_connection_accepter.primary_accept_hub]
+
 }
 
 resource "aws_vpc_peering_connection_options" "hub_to_primary_accepter_opts" {
@@ -31,6 +34,9 @@ resource "aws_vpc_peering_connection_options" "hub_to_primary_accepter_opts" {
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.primary_accept_hub.id
 
   accepter { allow_remote_vpc_dns_resolution = true }
+
+  depends_on = [aws_vpc_peering_connection_accepter.primary_accept_hub]
+
 }
 
 # Routes
@@ -76,6 +82,9 @@ resource "aws_vpc_peering_connection_options" "hub_to_secondary_requester_opts" 
   vpc_peering_connection_id = aws_vpc_peering_connection.hub_to_secondary.id
 
   requester { allow_remote_vpc_dns_resolution = true }
+
+  depends_on = [aws_vpc_peering_connection_accepter.secondary_accept_hub]
+
 }
 
 resource "aws_vpc_peering_connection_options" "hub_to_secondary_accepter_opts" {
@@ -83,6 +92,9 @@ resource "aws_vpc_peering_connection_options" "hub_to_secondary_accepter_opts" {
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.secondary_accept_hub.id
 
   accepter { allow_remote_vpc_dns_resolution = true }
+
+  depends_on = [aws_vpc_peering_connection_accepter.secondary_accept_hub]
+
 }
 
 # Routes
@@ -128,6 +140,9 @@ resource "aws_vpc_peering_connection_options" "primary_to_secondary_requester_op
   vpc_peering_connection_id = aws_vpc_peering_connection.primary_to_secondary.id
 
   requester { allow_remote_vpc_dns_resolution = true }
+
+  depends_on = [aws_vpc_peering_connection_accepter.secondary_accept_primary]
+
 }
 
 resource "aws_vpc_peering_connection_options" "primary_to_secondary_accepter_opts" {
@@ -135,6 +150,9 @@ resource "aws_vpc_peering_connection_options" "primary_to_secondary_accepter_opt
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.secondary_accept_primary.id
 
   accepter { allow_remote_vpc_dns_resolution = true }
+
+  depends_on = [aws_vpc_peering_connection_accepter.secondary_accept_primary]
+
 }
 
 # Routes

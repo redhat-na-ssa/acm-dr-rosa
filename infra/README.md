@@ -18,7 +18,7 @@ Configure AWS profile
 aws configure --profile rosa
 ```
 
-Login to ROSA
+Login to ROSA with your OCM offline token
 
 ```sh
 rosa login --token=
