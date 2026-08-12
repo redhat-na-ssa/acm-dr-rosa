@@ -1,3 +1,18 @@
+variable "hub_vpc_name" {
+  type    = string
+  default = "hub"
+}
+
+variable "primary_vpc_name" {
+  type    = string
+  default = "primary"
+}
+
+variable "secondary_vpc_name" {
+  type    = string
+  default = "secondary"
+}
+
 variable "hub_region" {
   type        = string
   description = "AWS region for Hub Cluster"

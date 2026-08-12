@@ -6,7 +6,7 @@ data "aws_vpc" "hub" {
 
   filter {
     name   = "tag:Name"
-    values = ["rosa-vpc-${var.hub_region}"]
+    values = ["${var.hub_vpc_name}-vpc"]
   }
 }
 
@@ -47,7 +47,7 @@ data "aws_vpc" "primary" {
 
   filter {
     name   = "tag:Name"
-    values = ["rosa-vpc-${var.primary_region}"]
+    values = ["${var.primary_vpc_name}-vpc"]
   }
 }
 
@@ -88,7 +88,7 @@ data "aws_vpc" "secondary" {
 
   filter {
     name   = "tag:Name"
-    values = ["rosa-vpc-${var.secondary_region}"]
+    values = ["${var.secondary_vpc_name}-vpc"]
   }
 }
 

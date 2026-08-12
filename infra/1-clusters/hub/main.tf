@@ -31,11 +31,6 @@ module "vpc" {
   vpc_cidr                 = var.vpc_cidr
   availability_zones_count = 3
 
-  # REQUIRED - terraform files for VPC peering filter on VPC tags
-  vpc_tags = {
-    Name = "rosa-vpc-${var.aws_region}"
-  }
-
 }
 
 # ==============================================================================
