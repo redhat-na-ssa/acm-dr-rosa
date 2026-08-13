@@ -81,6 +81,7 @@ module "rosa_hcp_cluster" {
 
   # Cluster Identification
   cluster_name      = var.cluster_name
+  domain_prefix     = var.cluster_name
   openshift_version = var.openshift_version
 
   # Networking (Private Cluster + Multi-AZ)

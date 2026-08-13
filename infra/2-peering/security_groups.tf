@@ -2,17 +2,17 @@
 # HUB CLUSTER INGRESS RULES
 # ==============================================================================
 
-# 1. Hub Control Plane: Allow Managed Clusters + Bastion to hit API 6443
+# 1. Hub Control Plane: Allow Managed Clusters + Bastion to hit API 443 (ROSA HCP PrivateLink)
 resource "aws_vpc_security_group_ingress_rule" "hub_cp_api_access" {
   for_each          = toset([data.aws_vpc.primary.cidr_block, data.aws_vpc.secondary.cidr_block])
   provider          = aws.hub
   security_group_id = data.aws_security_group.hub_control_plane_sg.id
 
   cidr_ipv4   = each.value
-  from_port   = 6443
-  to_port     = 6443
+  from_port   = 443
+  to_port     = 443
   ip_protocol = "tcp"
-  description = "Allow API 6443 access from Primary/Secondary VPC CIDRs for Managed Clusters and Bastion"
+  description = "Allow API 443 access from Primary/Secondary VPC CIDRs for Managed Clusters and Bastion"
 }
 
 # 2. Hub Compute Nodes: Allow Ingress Router 443 (for Managed Clusters & Bastion Web Console)
@@ -33,7 +33,7 @@ resource "aws_vpc_security_group_ingress_rule" "hub_compute_ingress_443" {
 # PRIMARY CLUSTER INGRESS RULES
 # ==============================================================================
 
-# 1. Primary Control Plane: Allow Hub Cluster + Bastion Host to hit API 6443
+# 1. Primary Control Plane: Allow Hub Cluster + Bastion Host to hit API 443 (ROSA HCP PrivateLink)
 # Primary CIDR block can be replaced with Bastion {SG,Subnet,Host IP} if desired
 resource "aws_vpc_security_group_ingress_rule" "primary_cp_api_access" {
   for_each          = toset([data.aws_vpc.hub.cidr_block, data.aws_vpc.primary.cidr_block])
@@ -41,10 +41,10 @@ resource "aws_vpc_security_group_ingress_rule" "primary_cp_api_access" {
   security_group_id = data.aws_security_group.primary_control_plane_sg.id
 
   cidr_ipv4   = each.value
-  from_port   = 6443
-  to_port     = 6443
+  from_port   = 443
+  to_port     = 443
   ip_protocol = "tcp"
-  description = "Allow API 6443 access from Hub VPC and local bastion"
+  description = "Allow API 443 access from Hub VPC and local bastion"
 }
 
 # 2. Primary Compute Nodes: Allow Bastion Web Console Access (443)
@@ -75,7 +75,7 @@ resource "aws_vpc_security_group_ingress_rule" "primary_compute_submariner_mesh"
 # SECONDARY CLUSTER INGRESS RULES
 # ==============================================================================
 
-# 1. Secondary Control Plane: Allow Hub Cluster + Primary Bastion to hit API 6443
+# 1. Secondary Control Plane: Allow Hub Cluster + Primary Bastion to hit API 443 (ROSA HCP PrivateLink)
 # Primary CIDR block can be replaced with Bastion Subnet or Bastion Host IP if desired
 resource "aws_vpc_security_group_ingress_rule" "secondary_cp_api_access" {
   for_each          = toset([data.aws_vpc.hub.cidr_block, data.aws_vpc.primary.cidr_block])
@@ -83,10 +83,10 @@ resource "aws_vpc_security_group_ingress_rule" "secondary_cp_api_access" {
   security_group_id = data.aws_security_group.secondary_control_plane_sg.id
 
   cidr_ipv4   = each.value
-  from_port   = 6443
-  to_port     = 6443
+  from_port   = 443
+  to_port     = 443
   ip_protocol = "tcp"
-  description = "Allow API 6443 access from Hub VPC and Bastion Host (Primary VPC)"
+  description = "Allow API 443 access from Hub VPC and Bastion Host (Primary VPC)"
 }
 
 # 2. Secondary Compute Nodes: Allow Primary Bastion Web Console Access (443)

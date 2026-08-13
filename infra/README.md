@@ -3,6 +3,7 @@
 * [awscli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 * [rosa](https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws/4/html/cli_tools/rosa-cli#rosa-setting-up-cli_rosa-getting-started-cli)
 * [terraform](https://developer.hashicorp.com/terraform/install)
+* [sshuttle](https://sshuttle.readthedocs.io/en/stable/installation.html)
   
 2. Configure AWS and ROSA
 
@@ -85,9 +86,25 @@ terraform -chdir=2-peering apply vpc-peering.tfplan
 
 10. Bastion
 
-> TODO
+```sh
+terraform -chdir=3-bastion init
+terraform -chdir=3-bastion plan -var="allowed_my_ip_cidr=$(curl -s https://ipv4.icanhazip.com)/32" -out=bastion.tfplan
+terraform -chdir=3-bastion apply bastion.tfplan
+```
 
 11. Test
+
+Open SSH tunnel in a separate window
+
+> Note: Update CIDRs if you modified these in Cluster Setup
+
+```sh
+sudo sshuttle -NHr ec2-user@$(terraform -chdir=3-bastion output -raw bastion_public_ip) \
+  10.1.0.0/20 10.0.0.0/20 192.168.0.0/20 \
+  --ssh-cmd 'ssh -i ./3-bastion/primary-bastion-ssh-key.pem'
+```
+
+Set OpenShift Clusters env vars
 
 ```sh
 export HUB_API_URL=$(terraform -chdir=1-clusters/hub output -raw api_url)
@@ -108,5 +125,45 @@ export SECONDARY_API_URL=$(terraform -chdir=1-clusters/secondary output -raw api
 export SECONDARY_CONSOLE_URL=$(terraform -chdir=1-clusters/secondary output -raw console_url)
 export SECONDARY_ADMIN_USERNAME=$(terraform -chdir=1-clusters/secondary output -raw cluster_admin_username)
 export SECONDARY_ADMIN_PASSWORD=$(terraform -chdir=1-clusters/secondary output -raw cluster_admin_password)
+```
+
+Access OpenShift via Browser
+
+```sh
+echo $HUB_CONSOLE_URL
+echo $PRIMARY_CONSOLE_URL
+echo $SECONDARY_CONSOLE_URL
+```
+
+Access OpenShift via CLI
+
+```sh
+oc login $HUB_API_URL -u $HUB_ADMIN_USERNAME -p $HUB_ADMIN_PASSWORD --insecure-skip-tls-verify=true
+oc config rename-context "$(oc config current-context)" hub
+
+oc login $PRIMARY_API_URL -u $PRIMARY_ADMIN_USERNAME -p $PRIMARY_ADMIN_PASSWORD --insecure-skip-tls-verify=true
+oc config rename-context "$(oc config current-context)" primary
+
+oc login $SECONDARY_API_URL -u $SECONDARY_ADMIN_USERNAME -p $SECONDARY_ADMIN_PASSWORD --insecure-skip-tls-verify=true
+oc config rename-context "$(oc config current-context)" secondary
+```
+
+Switch clusters
+
+```sh
+oc config use-context hub
+oc config use-context primary
+oc config use-context secondary
+```
+
+## Cleanup
+
+Remove all resources
+
+```sh
+terraform -chdir=3-bastion destroy
+terraform -chdir=2-peering destroy
+terraform -chdir=1-clusters destroy
+terraform -chdir=0-account-roles destroy
 ```
 
