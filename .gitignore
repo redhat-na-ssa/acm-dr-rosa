@@ -1,0 +1,10 @@
+**/.terraform/
+**/.terraform.lock.hcl
+
+**/*.tfstate
+**/*.tfstate.*
+
+**/*.tfplan
+
+**/*secrets.tfvars
+**/*.pem
