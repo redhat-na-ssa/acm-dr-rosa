@@ -9,6 +9,8 @@
 
 [Enable ROSA Service in AWS Console](https://docs.aws.amazon.com/rosa/latest/userguide/set-up.html#enable-rosa)
 
+> NOTE: Make sure to **Get Started** -> **Enable ROSA for HCP** -> **Continue** to link OCM
+
 [Get a OCM offline token](https://console.redhat.com/openshift/token/rosa)
 
 > Note: OCM tokens are being deprecrated but needed by the Terraform modules currently
